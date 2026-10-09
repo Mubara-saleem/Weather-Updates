@@ -1,0 +1,6 @@
+{
+  "name": "WeatherNow - Live Real-Time Weather & 5-Day Forecast",
+  "description": "A modern, responsive weather dashboard featuring real-time meteorological data, geolocation detection, atmospheric metrics, and 5-day forecasts powered by OpenWeatherMap.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

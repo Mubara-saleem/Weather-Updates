@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WeatherNow - Live Real-Time Weather & 5-Day Forecast</title>
+  <meta name="description" content="A modern, responsive weather dashboard featuring real-time meteorological data, geolocation detection, atmospheric metrics, and 5-day forecasts powered by OpenWeatherMap." />
+  
+  <!-- Open Graph / Social Meta Tags -->
+  <meta property="og:title" content="WeatherNow - Live Real-Time Weather & 5-Day Forecast" />
+  <meta property="og:description" content="A modern, responsive weather dashboard featuring real-time meteorological data, geolocation detection, atmospheric metrics, and 5-day forecasts powered by OpenWeatherMap." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Google Fonts: Plus Jakarta Sans (Display), DM Sans (Body), JetBrains Mono (Metrics) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome 6 for Weather & Interface Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body class="theme-default">
+  <!-- Dynamic Ambient Background Glow -->
+  <div class="ambient-glow" aria-hidden="true"></div>
+
+  <!-- Header / Navigation (Top Bar Contract: 3 Zones) -->
+  <header class="site-header">
+    <div class="header-container">
+      <!-- Zone 1: Brand Wordmark -->
+      <a href="#home" class="brand-logo" aria-label="WeatherNow Homepage">
+        <span class="brand-icon">
+          <i class="fa-solid fa-cloud-sun"></i>
+        </span>
+        <span class="brand-name">Weather<span class="brand-accent">Now</span></span>
+      </a>
+
+      <!-- Zone 2: Navigation Links -->
+      <nav class="nav-links" id="navMenu">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#forecast" class="nav-link">Forecast</a>
+        <a href="#details" class="nav-link">Details</a>
+        <a href="#about" class="nav-link">About</a>
+      </nav>
+
+      <!-- Zone 3: Actions & Quick Controls -->
+      <div class="header-actions">
+        <!-- Temperature Unit Toggle (°C / °F) -->
+        <div class="unit-toggle-group" role="group" aria-label="Temperature Unit Switcher">
+          <button type="button" class="unit-btn active" id="unitCBtn" data-unit="metric" title="Show in Celsius (°C)">°C</button>
+          <button type="button" class="unit-btn" id="unitFBtn" data-unit="imperial" title="Show in Fahrenheit (°F)">°F</button>
+        </div>
+
+        <!-- API Key Configuration Trigger -->
+        <button type="button" class="btn-api-key" id="openApiKeyModalBtn" title="Configure OpenWeatherMap API Key">
+          <i class="fa-solid fa-key" aria-hidden="true"></i>
+          <span class="btn-api-text">API Key</span>
+        </button>
+
+        <!-- Mobile Navigation Toggle -->
+        <button type="button" class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <i class="fa-solid fa-bars" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Container -->
+  <main class="main-content" id="home">
+    <div class="content-wrapper">
+
+      <!-- Hero & Search Section -->
+      <section class="hero-section" aria-labelledby="hero-title">
+        <div class="hero-header">
+          <h1 id="hero-title" class="hero-title">Check the Weather Anywhere</h1>
+          <p class="hero-subtitle">Real-time meteorological conditions, hourly trends, and 5-day forecasts for any city worldwide.</p>
+        </div>
+
+        <!-- Search Form & Location Trigger -->
+        <form class="search-form" id="searchForm" role="search" novalidate>
+          <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon" aria-hidden="true"></i>
+            <input 
+              type="text" 
+              id="cityInput" 
+              class="search-input" 
+              placeholder="Enter city name (e.g., London, Tokyo, New York)..." 
+              autocomplete="off"
+              spellcheck="false"
+              aria-label="City name to check weather" 
+            />
+            <button type="button" class="clear-input-btn hidden" id="clearInputBtn" aria-label="Clear city input">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="search-actions">
+            <button type="submit" class="btn btn-primary" id="searchBtn">
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+              <span>Search</span>
+            </button>
+            <button type="button" class="btn btn-secondary" id="locationBtn" title="Detect weather at your current location">
+              <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
+              <span>Use My Location</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Recent Searches & Quick Preset Cities -->
+        <div class="recent-searches-bar" id="recentSearchesBar">
+          <span class="recent-label">Popular & Recent:</span>
+          <div class="chips-list" id="chipsList">
+            <!-- Dynamically populated chips (e.g. London, New York, Tokyo, Paris) -->
+          </div>
+        </div>
+
+        <!-- Notification / Status Banner (API alerts, errors, info) -->
+        <div class="notification-banner hidden" id="notificationBanner" role="alert">
+          <div class="notification-content">
+            <i class="fa-solid fa-circle-info notification-icon" id="notificationIcon" aria-hidden="true"></i>
+            <div class="notification-text" id="notificationText"></div>
+          </div>
+          <div class="notification-actions">
+            <button type="button" class="notification-action-btn hidden" id="notificationActionBtn"></button>
+            <button type="button" class="notification-close-btn" id="notificationCloseBtn" aria-label="Dismiss message">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Weather Dashboard Container -->
+      <section class="dashboard-section" id="dashboardSection" aria-live="polite">
+        <!-- Loading State Skeleton -->
+        <div class="loading-state hidden" id="loadingState">
+          <div class="spinner-orbit">
+            <div class="spinner-core"></div>
+          </div>
+          <p class="loading-text" id="loadingText">Fetching live atmospheric data...</p>
+        </div>
+
+        <!-- Dashboard Content Grid -->
+        <div class="dashboard-grid" id="dashboardGrid">
+          
+          <!-- Top Row: Primary Current Weather Showcase Card -->
+          <article class="weather-card primary-current-card" id="currentWeatherCard">
+            <div class="card-glass-glow" aria-hidden="true"></div>
+            
+            <div class="current-card-header">
+              <div class="location-cluster">
+                <div class="location-badge">
+                  <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                  <span id="currentCityCountry" class="city-name">Loading...</span>
+                </div>
+                <time id="currentDateTime" class="date-time-meta">--</time>
+              </div>
+              <div class="live-pulse-badge">
+                <span class="pulse-indicator"></span>
+                <span>Live Data</span>
+              </div>
+            </div>
+
+            <div class="current-card-body">
+              <div class="temp-hero-cluster">
+                <div class="weather-icon-large-container">
+                  <img id="currentWeatherIcon" class="weather-icon-large" src="" alt="Current weather condition" />
+                </div>
+                <div class="temp-display-wrap">
+                  <div class="temp-value-row">
+                    <span id="currentTempValue" class="temp-number">--</span>
+                    <span id="currentTempUnit" class="temp-unit">°C</span>
+                  </div>
+                  <div class="temp-sub-meta">
+                    <span id="currentConditionText" class="condition-name">--</span>
+                    <span class="meta-dot" aria-hidden="true">·</span>
+                    <span id="feelsLikeText" class="feels-like">Feels like --°</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- High / Low & Wind Summary Strip -->
+              <div class="quick-stat-strip">
+                <div class="quick-stat-item">
+                  <span class="stat-kicker">High / Low</span>
+                  <span id="currentHighLow" class="stat-val">-- / --</span>
+                </div>
+                <div class="stat-divider" aria-hidden="true"></div>
+                <div class="quick-stat-item">
+                  <span class="stat-kicker">Wind</span>
+                  <span id="currentWindSummary" class="stat-val">--</span>
+                </div>
+                <div class="stat-divider" aria-hidden="true"></div>
+                <div class="quick-stat-item">
+                  <span class="stat-kicker">Atmosphere</span>
+                  <span id="currentAtmosphereSummary" class="stat-val">--</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Middle Row: Hourly Trend Strip (Next 24h) -->
+          <section class="weather-card hourly-forecast-card" id="hourlySection" aria-labelledby="hourly-title">
+            <div class="card-glass-glow" aria-hidden="true"></div>
+            <div class="card-header-simple">
+              <h2 id="hourly-title" class="section-kicker">
+                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                <span>Hourly Timeline (Next 24 Hours)</span>
+              </h2>
+              <span class="scroll-hint">Scroll for upcoming hours &rarr;</span>
+            </div>
+            <div class="hourly-scroll-strip" id="hourlyScrollStrip">
+              <!-- Dynamically rendered hourly cards -->
+            </div>
+          </section>
+
+          <!-- Middle Row: Weather Detailed Metrics (7 Cards) -->
+          <section class="details-section" id="details" aria-labelledby="details-title">
+            <div class="section-title-wrap">
+              <h2 id="details-title" class="section-kicker">
+                <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                <span>Meteorological Conditions & Atmospheric Details</span>
+              </h2>
+            </div>
+
+            <div class="details-grid">
+              <!-- Detail 1: Humidity -->
+              <article class="weather-card detail-card">
+                <div class="detail-card-top">
+                  <span class="detail-label">Humidity</span>
+                  <div class="detail-icon-wrap icon-humidity">
+                    <i class="fa-solid fa-droplet" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="detail-value-wrap">
+                  <span id="detailHumidity" class="detail-metric-value">--%</span>
+                  <span id="detailHumidityHint" class="detail-metric-sub">Optimal comfort</span>
+                </div>
+                <div class="progress-bar-container" aria-hidden="true">
+                  <div id="humidityProgress" class="progress-bar-fill" style="width: 0%"></div>
+                </div>
+              </article>
+
+              <!-- Detail 2: Wind Speed -->
+              <article class="weather-card detail-card">
+                <div class="detail-card-top">
+                  <span class="detail-label">Wind Speed</span>
+                  <div class="detail-icon-wrap icon-wind">
+                    <i class="fa-solid fa-wind" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="detail-value-wrap">
+                  <span id="detailWindSpeed" class="detail-metric-value">-- m/s</span>
+                  <span id="detailWindDirection" class="detail-metric-sub">Direction: --</span>
+                </div>
+                <div class="wind-compass-row">
+                  <i class="fa-solid fa-location-arrow wind-needle" id="windNeedle" aria-hidden="true"></i>
+                  <span id="detailWindGust" class="wind-gust-text">Gusts: --</span>
+                </div>
+              </article>
+
+              <!-- Detail 3: Air Pressure -->
+              <article class="weather-card detail-card">
+                <div class="detail-card-top">
+                  <span class="detail-label">Air Pressure</span>
+                  <div class="detail-icon-wrap icon-pressure">
+                    <i class="fa-solid fa-compass" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="detail-value-wrap">
+                  <span id="detailPressure" class="detail-metric-value">-- hPa</span>
+                  <span id="detailPressureStatus" class="detail-metric-sub">Standard barometric</span>
+                </div>
+              </article>
+
+              <!-- Detail 4: Visibility -->
+              <article class="weather-card detail-card">
+                <div class="detail-card-top">
+                  <span class="detail-label">Visibility</span>
+                  <div class="detail-icon-wrap icon-visibility">
+                    <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="detail-value-wrap">
+                  <span id="detailVisibility" class="detail-metric-value">-- km</span>
+                  <span id="detailVisibilityStatus" class="detail-metric-sub">Clear horizon</span>
+                </div>
+              </article>
+
+              <!-- Detail 5: Cloudiness -->
+              <article class="weather-card detail-card">
+                <div class="detail-card-top">
+                  <span class="detail-label">Cloudiness</span>
+                  <div class="detail-icon-wrap icon-clouds">
+                    <i class="fa-solid fa-cloud" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="detail-value-wrap">
+                  <span id="detailCloudiness" class="detail-metric-value">--%</span>
+                  <span id="detailCloudinessStatus" class="detail-metric-sub">Sky coverage</span>
+                </div>
+                <div class="progress-bar-container" aria-hidden="true">
+                  <div id="cloudsProgress" class="progress-bar-fill fill-cloud" style="width: 0%"></div>
+                </div>
+              </article>
+
+              <!-- Detail 6: Sunrise -->
+              <article class="weather-card detail-card">
+                <div class="detail-card-top">
+                  <span class="detail-label">Sunrise</span>
+                  <div class="detail-icon-wrap icon-sunrise">
+                    <i class="fa-solid fa-sun" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="detail-value-wrap">
+                  <span id="detailSunrise" class="detail-metric-value">--:--</span>
+                  <span id="detailSunriseSub" class="detail-metric-sub">Local dawn</span>
+                </div>
+              </article>
+
+              <!-- Detail 7: Sunset -->
+              <article class="weather-card detail-card">
+                <div class="detail-card-top">
+                  <span class="detail-label">Sunset</span>
+                  <div class="detail-icon-wrap icon-sunset">
+                    <i class="fa-solid fa-moon" aria-hidden="true"></i>
+                  </div>
+                </div>
+                <div class="detail-value-wrap">
+                  <span id="detailSunset" class="detail-metric-value">--:--</span>
+                  <span id="detailSunsetSub" class="detail-metric-sub">Local dusk</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <!-- Bottom Row: 5-Day Forecast -->
+          <section class="forecast-section" id="forecast" aria-labelledby="forecast-title">
+            <div class="section-title-wrap">
+              <h2 id="forecast-title" class="section-kicker">
+                <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                <span>5-Day Weather Forecast</span>
+              </h2>
+              <span class="forecast-subtitle">Daily maximum and minimum expected temperatures</span>
+            </div>
+
+            <div class="forecast-cards-grid" id="forecastCardsGrid">
+              <!-- Dynamically populated 5 forecast cards -->
+            </div>
+          </section>
+
+        </div>
+      </section>
+
+      <!-- About Section -->
+      <section class="about-section" id="about" aria-labelledby="about-title">
+        <div class="about-card weather-card">
+          <div class="card-glass-glow" aria-hidden="true"></div>
+          <div class="about-header">
+            <span class="about-tag">About WeatherNow</span>
+            <h2 id="about-title" class="about-title">Precision Meteorology at Your Fingertips</h2>
+            <p class="about-desc">
+              WeatherNow delivers accurate, hyper-local meteorological forecasts by integrating real-time telemetry from OpenWeatherMap's global network of radar stations, weather satellites, and atmospheric models.
+            </p>
+          </div>
+
+          <div class="features-trio">
+            <div class="feature-item">
+              <div class="feature-icon"><i class="fa-solid fa-satellite-dish"></i></div>
+              <h3>Real-Time Live Telemetry</h3>
+              <p>Instantaneous tracking of temperature, feels-like metrics, barometric air pressure, humidity, and high-resolution wind vectors.</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><i class="fa-solid fa-location-crosshairs"></i></div>
+              <h3>One-Touch Geolocation</h3>
+              <p>Browser-based coordinate detection via the HTML5 Geolocation API, querying instant local weather without persistent tracking.</p>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+              <h3>5-Day Predictive Analysis</h3>
+              <p>Comprehensive synoptic forecast aggregating daily temperature maximums, minimums, and weather conditions across 120 hours.</p>
+            </div>
+          </div>
+
+          <!-- API Setup Quick Guide for Users -->
+          <div class="api-guide-box">
+            <div class="api-guide-header">
+              <i class="fa-solid fa-code"></i>
+              <h4>How to Connect Your OpenWeatherMap API Key</h4>
+            </div>
+            <div class="api-guide-steps">
+              <div class="api-step">
+                <span class="step-num">1</span>
+                <div>
+                  <strong>Get a Free Key:</strong> Sign up for a free account at <a href="https://home.openweathermap.org/users/sign_up" target="_blank" rel="noopener noreferrer">openweathermap.org</a> and generate an API key in your account dashboard.
+                </div>
+              </div>
+              <div class="api-step">
+                <span class="step-num">2</span>
+                <div>
+                  <strong>Option A (In Browser):</strong> Click the <strong>"API Key"</strong> button in the top navigation and paste your key. It saves directly in your browser.
+                </div>
+              </div>
+              <div class="api-step">
+                <span class="step-num">3</span>
+                <div>
+                  <strong>Option B (In Code):</strong> Open <code>script.js</code> and update <code>const API_KEY = "YOUR_API_KEY";</code> with your 32-character key.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <span class="brand-logo footer-logo">
+          <i class="fa-solid fa-cloud-sun"></i>
+          <span>Weather<span class="brand-accent">Now</span></span>
+        </span>
+        <p class="footer-copy">Clean, responsive, live atmospheric data powered by the OpenWeatherMap API.</p>
+      </div>
+
+      <div class="footer-meta">
+        <span class="footer-copyright">© 2026 WeatherNow. Built with Vanilla HTML5, CSS3 & Modern JavaScript.</span>
+        <div class="footer-links">
+          <a href="#home">Home</a>
+          <span aria-hidden="true">·</span>
+          <a href="#forecast">5-Day Forecast</a>
+          <span aria-hidden="true">·</span>
+          <a href="#about">About & Setup</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- API Key Modal Dialog -->
+  <div class="modal-backdrop hidden" id="apiKeyModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <i class="fa-solid fa-key modal-header-icon" aria-hidden="true"></i>
+          <h2 id="modalTitle" class="modal-title">Configure OpenWeatherMap API Key</h2>
+        </div>
+        <button type="button" class="modal-close-btn" id="closeApiKeyModalBtn" aria-label="Close modal">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-text">
+          WeatherNow requests meteorological data directly from the official OpenWeatherMap API. Enter your personal key below to enable live data:
+        </p>
+
+        <div class="form-group">
+          <label for="apiKeyInput" class="form-label">OpenWeatherMap API Key (32 characters)</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+            <input 
+              type="text" 
+              id="apiKeyInput" 
+              class="form-input" 
+              placeholder="e.g. 8a3f890b21c456de90123456789abcde" 
+              autocomplete="off" 
+              spellcheck="false"
+            />
+          </div>
+          <small class="form-help">
+            Key is saved locally in your browser's <code>localStorage</code>. Alternatively, define <code>const API_KEY</code> directly in <code>script.js</code>.
+          </small>
+        </div>
+
+        <div class="api-status-box" id="apiKeyStatusBox">
+          <span class="status-indicator-dot" id="statusDot"></span>
+          <span id="apiKeyStatusText">Checking configuration...</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="loadDemoBtn" title="Test dashboard with offline London sample dataset">
+          <i class="fa-solid fa-flask" aria-hidden="true"></i>
+          <span>Load Demo Snapshot</span>
+        </button>
+        <div class="modal-action-btns">
+          <button type="button" class="btn btn-tertiary" id="clearApiKeyBtn">Clear Key</button>
+          <button type="button" class="btn btn-primary" id="saveApiKeyBtn">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span>Save & Apply</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Vanilla JavaScript -->
+  <script src="./script.js"></script>
+</body>
+</html>
